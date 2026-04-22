@@ -639,12 +639,25 @@ func getRestoreWalConfig(ctx context.Context, backup *apiv1.Backup) (string, err
 
 	cmd = append(cmd, "%f", "%p")
 
+	quoted := make([]string, len(cmd))
+	for i, a := range cmd {
+		quoted[i] = shellQuote(a)
+	}
+
 	recoveryFileContents := fmt.Sprintf(
 		"recovery_target_action = promote\n"+
 			"restore_command = %s\n",
-		configfile.EscapePostgresConfLiteral(strings.Join(cmd, " ")))
+		configfile.EscapePostgresConfLiteral(strings.Join(quoted, " ")))
 
 	return recoveryFileContents, nil
+}
+
+// shellQuote wraps s so a POSIX shell sees it as a single literal argument.
+// restore_command is executed via system(), which runs /bin/sh -c. Without
+// quoting, a value containing whitespace or other shell metacharacters would
+// be word-split before barman-cloud-wal-restore ever sees it.
+func shellQuote(s string) string {
+	return "'" + strings.ReplaceAll(s, "'", `'\''`) + "'"
 }
 
 func (info InitInfo) writeRecoveryConfiguration(cluster *apiv1.Cluster, recoveryFileContents string) error {
