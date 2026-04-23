@@ -533,6 +533,7 @@ TablespaceStatus
 TablespaceStatusPendingReconciliation
 TablespaceStatusReconciled
 Tablespaces
+TargetPGDataImageInfo
 TemporaryData
 TimelineId
 TopologyKey
